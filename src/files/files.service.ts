@@ -9,6 +9,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
+import { UploadFileDto } from './dto/upload-file.dto';
 
 @Injectable()
 export class FilesService {
@@ -19,20 +20,19 @@ export class FilesService {
   constructor(private readonly configService: ConfigService) {}
 
   async getListOfFiles(): Promise<ListObjectsCommandOutput> {
-    const response = await this.s3client.send(
+    return await this.s3client.send(
       new ListObjectsCommand({
         Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
       }),
     );
-    return response;
   }
 
-  async uploadFile(fileName: string, file: Buffer) {
+  async uploadFile(dto: UploadFileDto) {
     await this.s3client.send(
       new PutObjectCommand({
         Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
-        Key: fileName,
-        Body: file,
+        Key: dto.fileName,
+        Body: dto.file,
       }),
     );
   }

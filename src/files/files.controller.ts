@@ -33,7 +33,10 @@ export class FilesController {
     )
     file: Express.Multer.File,
   ) {
-    await this.filesService.uploadFile(file.originalname, file.buffer);
+    await this.filesService.uploadFile({
+      fileName: file.originalname,
+      file: file.buffer,
+    });
   }
 
   @Delete(':fileName')
