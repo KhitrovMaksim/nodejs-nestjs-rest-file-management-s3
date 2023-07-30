@@ -9,18 +9,21 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
+import { FilesServiceAbstract } from './files-service-abstract/files-service-abstract';
 import { UploadFileDto } from './dto/upload-file.dto';
 
 @Injectable()
-export class FilesService {
-  private readonly s3client = new S3Client({
+export class FilesService extends FilesServiceAbstract {
+  private readonly client = new S3Client({
     region: this.configService.getOrThrow('AWS_S3_REGION'),
   });
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {
+    super();
+  }
 
   async getListOfFiles(): Promise<ListObjectsCommandOutput> {
-    return await this.s3client.send(
+    return await this.client.send(
       new ListObjectsCommand({
         Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
       }),
@@ -28,7 +31,7 @@ export class FilesService {
   }
 
   async uploadFile(dto: UploadFileDto) {
-    await this.s3client.send(
+    await this.client.send(
       new PutObjectCommand({
         Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
         Key: dto.fileName,
@@ -38,7 +41,7 @@ export class FilesService {
   }
 
   async deleteFile(fileName: string) {
-    await this.s3client.send(
+    await this.client.send(
       new DeleteObjectCommand({
         Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
         Key: fileName,
@@ -46,12 +49,13 @@ export class FilesService {
     );
   }
 
-  async downloadFile(fileName: string): Promise<GetObjectCommandOutput> {
-    return await this.s3client.send(
+  async downloadFile(fileName: string): Promise<Uint8Array> {
+    const downloadedFile: GetObjectCommandOutput = await this.client.send(
       new GetObjectCommand({
         Bucket: this.configService.getOrThrow('AWS_S3_BUCKET'),
         Key: fileName,
       }),
     );
+    return await downloadedFile.Body.transformToByteArray();
   }
 }

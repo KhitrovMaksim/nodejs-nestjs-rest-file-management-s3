@@ -10,13 +10,12 @@ import {
   UseInterceptors,
   StreamableFile,
 } from '@nestjs/common';
-import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GetObjectCommandOutput } from '@aws-sdk/client-s3';
+import { FilesServiceAbstract } from './files-service-abstract/files-service-abstract';
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly filesService: FilesService) {}
+  constructor(private readonly filesService: FilesServiceAbstract) {}
 
   @Get()
   getUsers() {
@@ -48,9 +47,6 @@ export class FilesController {
   async downloadFile(
     @Param('fileName') fileName: string,
   ): Promise<StreamableFile> {
-    const downloadedFile: GetObjectCommandOutput =
-      await this.filesService.downloadFile(fileName);
-
-    return new StreamableFile(await downloadedFile.Body.transformToByteArray());
+    return new StreamableFile(await this.filesService.downloadFile(fileName));
   }
 }

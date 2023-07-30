@@ -4,6 +4,7 @@ import { FilesService } from './files.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { FilesServiceAbstract } from './files-service-abstract/files-service-abstract';
 
 @Module({
   imports: [
@@ -17,7 +18,10 @@ import { ConfigService } from '@nestjs/config';
   ],
   controllers: [FilesController],
   providers: [
-    FilesService,
+    {
+      provide: FilesServiceAbstract,
+      useClass: FilesService,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
